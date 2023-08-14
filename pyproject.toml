@@ -26,6 +26,7 @@ ignore = [
 
     # Do not require future import for type annotations, Arch ships 3.11 so
     # we don't need to care for older versions.
+    "FA100",
     "FA102",
 ]
 
