@@ -15,7 +15,9 @@ This hook helps with managing AUR packages.  It
 """
 
 
-from subprocess import run
+import sys
+from json import loads
+from subprocess import run, CalledProcessError
 from pathlib import Path
 
 
@@ -32,15 +34,66 @@ def get_added_or_changed_files() -> list[Path]:
         if p]
 
 
+WRAPPER="""\
+# shellcheck shell=bash enable=all
+
+# Declare input variables to PKGBUILD
+export srcdir=''
+export pkgdir=''
+
+# Include makepkg to set all build variables such as CFLAGS
+source /etc/makepkg.conf
+
+{PKGBUILD}
+
+# Mark all sorts of PKGBUILD variables as exported to prevent shellcheck from
+# marking them as unused
+export pkgbase epoch pkgver pkgrel pkgdesc url license arch \
+    source \
+    depends optdepends makedepends conflicts \
+    md5sums sha256sums sha512sums b2sums
+"""
+
+
+def shellcheck_pkgbuild(pkgbuild: Path) -> None:
+    """Run shellcheck on `file`."""
+    shellcheck = ["shellcheck", "-x", "--format=json1", "--severity=style", "-"]
+    result = run(shellcheck, text=True, capture_output=True,
+        input=WRAPPER.format(PKGBUILD=pkgbuild.read_text()))
+    comments = loads(result.stdout)["comments"]
+    offset = WRAPPER.splitlines().index("{PKGBUILD}")
+    for comment in comments:
+        line = int(comment["line"] - offset)
+        column = comment["column"]
+        level = comment["level"]
+        code = comment["code"]
+        message = comment["message"]
+        color = {
+            "style": "\x1b[32m",
+            "warning": "\x1b[33m",
+            "error": "\x1b[01;31m",
+        }.get(level, "")
+        print(  # noqa: T201
+            f"{color}{pkgbuild}:{line}:{column}: {level}: {code}: {message}\x1b[00m")
+    result.check_returncode()
+
+
 def main() -> None:
     """Run pre-commit hook."""
-    for path in get_added_or_changed_files():
-        if path == Path("PKGBUILD"):
-            msg(f"Generating and adding .SRCINFO for {path}")
-            run(["makepkg", "--verifysource", "-f"], check=True)
-            with (Path.cwd() / ".SRCINFO").open("wb") as sink:
-                run(["makepkg", "--printsrcinfo"], check=True, stdout=sink)
-            run(["git", "add", ".SRCINFO"], check=True)
+    try:
+        for path in get_added_or_changed_files():
+            if path == Path("PKGBUILD"):
+                msg(f"Running shellcheck on {path}")
+                shellcheck_pkgbuild(path)
+                msg(f"Running namcap on {path}")
+                run(["namcap", path], check=True)
+                msg(f"Generating and adding .SRCINFO for {path}")
+                run(["makepkg", "--verifysource", "-f"], check=True)
+                with (Path.cwd() / ".SRCINFO").open("wb") as sink:
+                    run(["makepkg", "--printsrcinfo"], check=True, stdout=sink)
+                run(["git", "add", ".SRCINFO"], check=True)
+    except CalledProcessError:
+        sys.exit(1)
 
 
 if __name__ == "__main__":

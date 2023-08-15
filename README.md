@@ -15,6 +15,8 @@ $./install.py /path/to/AUR/repo`
 ## Features
 
 - Prepare commit message according to version update.
+- Run namcap on `PKGBUILD`.
+- Run shellcheck on `PKGBUILD`.
 - Verify source files before a commit.
 - Automatically update `.SRCINFO` before a commit.
 
