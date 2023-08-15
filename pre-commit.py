@@ -66,7 +66,8 @@ def shellcheck_pkgbuild(pkgbuild: Path) -> None:
         line = int(comment["line"] - offset)
         column = comment["column"]
         level = comment["level"]
-        code = comment["code"]
+        code = "SC" + str(comment["code"])
+        code_url = f"https://github.com/koalaman/shellcheck/wiki/{code}"
         message = comment["message"]
         color = {
             "style": "\x1b[32m",
@@ -74,7 +75,8 @@ def shellcheck_pkgbuild(pkgbuild: Path) -> None:
             "error": "\x1b[01;31m",
         }.get(level, "")
         print(  # noqa: T201
-            f"{color}{pkgbuild}:{line}:{column}: {level}: SC{code}: {message}\x1b[00m")
+            f"{color}{pkgbuild}:{line}:{column}: {level}: "
+            f"\x1b]8;;{code_url}\x1b\\{code}\x1b]8;;\x1b\\: {message}\x1b[00m")
     result.check_returncode()
 
 
