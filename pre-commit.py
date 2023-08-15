@@ -74,7 +74,7 @@ def shellcheck_pkgbuild(pkgbuild: Path) -> None:
             "error": "\x1b[01;31m",
         }.get(level, "")
         print(  # noqa: T201
-            f"{color}{pkgbuild}:{line}:{column}: {level}: {code}: {message}\x1b[00m")
+            f"{color}{pkgbuild}:{line}:{column}: {level}: SC{code}: {message}\x1b[00m")
     result.check_returncode()
 
 
