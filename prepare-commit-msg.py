@@ -66,7 +66,10 @@ def main() -> None:
 
     for file in git_diff("A"):
         if file == Path("PKGBUILD"):
-            # TODO: Handle initial upload
+            info = get_pkginfo()
+            epoch = f"{info.epoch}:" if info.epoch else ""
+            msg_lines.append(
+                f"Initial upload: {info.pkgbase} {epoch}{info.pkgver}-{info.pkgrel}")
             break
 
     for file in git_diff("M"):
