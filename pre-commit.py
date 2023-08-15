@@ -50,7 +50,7 @@ source /etc/makepkg.conf
 # marking them as unused
 export pkgbase epoch pkgver pkgrel pkgdesc url license arch \
     source \
-    depends optdepends makedepends conflicts \
+    depends optdepends makedepends conflicts provides \
     md5sums sha256sums sha512sums b2sums
 """
 
