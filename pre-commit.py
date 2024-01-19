@@ -59,7 +59,7 @@ def shellcheck_pkgbuild(pkgbuild: Path) -> None:
     """Run shellcheck on `file`."""
     shellcheck = ["shellcheck", "-x", "--format=json1", "--severity=style", "-"]
     result = run(shellcheck, text=True, capture_output=True,
-        input=WRAPPER.format(PKGBUILD=pkgbuild.read_text()))
+        input=WRAPPER.format(PKGBUILD=pkgbuild.read_text()), check=False)
     comments = loads(result.stdout)["comments"]
     offset = WRAPPER.splitlines().index("{PKGBUILD}")
     for comment in comments:
