@@ -48,7 +48,7 @@ source /etc/makepkg.conf
 
 # Mark all sorts of PKGBUILD variables as exported to prevent shellcheck from
 # marking them as unused
-export pkgbase epoch pkgver pkgrel pkgdesc url license arch \
+export pkgname pkgbase epoch pkgver pkgrel pkgdesc url license arch \
     source \
     depends optdepends makedepends conflicts provides \
     md5sums sha256sums sha512sums b2sums
